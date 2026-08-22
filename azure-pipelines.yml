@@ -1,32 +1,47 @@
 trigger:
-  - main
+- main
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
 steps:
-  - task: UsePythonVersion@0
-    inputs:
-      versionSpec: "3.12"
 
-  - script: |
-      pip install -r requirements.txt
-    displayName: "Install Dependencies"
+- checkout: self
+  fetchDepth: 0
 
-  - script: |
-      pytest --cov=. --cov-report=xml
-    displayName: "Run Tests and Coverage"
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.12'
+  displayName: 'Setup Python'
 
-  - task: SonarQubePrepare@5
-    inputs:
-      SonarQube: "sonarqube-connection"
-      scannerMode: "CLI"
-      configMode: "file"
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+  displayName: 'Install Dependencies'
 
-  - task: SonarQubeAnalyze@5
-    displayName: "Run SonarQube Analysis"
+# SonarQube Prepare
+- task: SonarQubePrepare@8
+  inputs:
+    SonarQube: 'sonarqube-connection'
+    scannerMode: 'cli'
+    configMode: 'manual'
+    cliProjectKey: 'python-code-analysis'
+    cliProjectName: 'Python Code Analysis'
+    cliSources: '.'
+  displayName: 'Prepare SonarQube Analysis'
 
-  - task: SonarQubePublish@5
-    inputs:
-      pollingTimeoutSec: "300"
-    displayName: "Publish Quality Gate"
+- script: |
+    pytest --cov=. --cov-report=xml
+  displayName: 'Run Tests'
+
+# SonarQube Analysis
+- task: SonarQubeAnalyze@8
+  inputs:
+    jdkversion: 'JAVA_HOME_17_X64'
+  displayName: 'Run SonarQube Analysis'
+
+# Quality Gate
+- task: SonarQubePublish@8
+  inputs:
+    pollingTimeoutSec: '300'
+  displayName: 'Publish Quality Gate'
