@@ -176,6 +176,76 @@ The important concepts to practice are **SonarQube Server → Project → Token/
 ```
 
 ### SonarQube Connection 
+
+Yes. If you're using **SonarQube Server (self-hosted)**, you need a machine/server where SonarQube is actually running. It does **not** need to be a physical machine.
+
+For your Azure DevOps practice, the architecture can be:
+
+```text
+GitHub / Azure Repo
+       ↓
+Azure DevOps Pipeline
+       ↓
+sonarqube-connection
+       ↓
+SonarQube Server
+       ↓
+Code Analysis Dashboard
+```
+
+The SonarQube Server can run on:
+
+```text
+Azure VM        ✅
+AWS EC2         ✅
+Local VM        ✅
+Physical Server ✅
+Docker host     ✅
+Your laptop     ✅ (practice)
+```
+
+The important requirement is that the **Azure DevOps pipeline agent must be able to reach the SonarQube URL**.
+
+For example, if SonarQube runs on an Azure VM:
+
+```text
+Azure VM
+Public IP: 20.x.x.x
+
+SonarQube:
+http://20.x.x.x:9000
+```
+
+Then your Azure DevOps service connection would use:
+
+```text
+Server URL:
+http://20.x.x.x:9000
+
+Token:
+<sonarqube-token>
+
+Connection Name:
+sonarqube-connection
+```
+
+### Important for your lab
+
+If you install SonarQube only on your Mac and use:
+
+```text
+http://localhost:9000
+```
+
+a **Microsoft-hosted Azure DevOps agent cannot reach your Mac's localhost**.
+
+So for an easy training lab, I'd recommend:
+
+**Azure VM → Docker → SonarQube → expose port 9000 → create SonarQube token → Azure DevOps service connection → run pipeline.**
+
+Alternatively, if you use **SonarQube Cloud**, you don't need to maintain a SonarQube VM/server yourself.
+
+
 ```
 This error is no longer about the SonarQube task version. The task is loading correctly now; Azure DevOps simply cannot find the service connection named:
 
