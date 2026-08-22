@@ -167,4 +167,10 @@ steps:
 
 The important concepts to practice are **SonarQube Server → Project → Token/Service Connection → Scanner → Code Analysis → Quality Profile → Quality Gate → Pipeline result**.
 
-A good next project would be to deliberately introduce **5–10 SonarQube issues** into this Python application and then fix them one by one, so students can clearly see the SonarQube dashboard changing.
+
+### Troubleshoot 
+```
+1. Go to https://marketplace.visualstudio.com/items?itemName=SonarSource.sonarqube
+2. Click **Get it free** and select your Azure DevOps organization.
+3. An org admin must approve/install it (Organization Settings → Extensions if you already have access but it's pending approval).
+```
