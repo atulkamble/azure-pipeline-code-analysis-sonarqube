@@ -1,5 +1,3 @@
-Here’s a simple **SonarQube Code Analysis Project** you can use for Azure DevOps practice.
-
 ### Project: Python Code Analysis with SonarQube
 
 **Goal:** Analyze Python source code for bugs, vulnerabilities, code smells, duplication, and maintainability issues using SonarQube.
