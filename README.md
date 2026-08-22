@@ -174,3 +174,150 @@ The important concepts to practice are **SonarQube Server → Project → Token/
 2. Click **Get it free** and select your Azure DevOps organization.
 3. An org admin must approve/install it (Organization Settings → Extensions if you already have access but it's pending approval).
 ```
+
+### SonarQube Connection 
+```
+This error is no longer about the SonarQube task version. The task is loading correctly now; Azure DevOps simply cannot find the service connection named:
+
+```text
+sonarqube-connection
+```
+
+You need to create that service connection in the Azure DevOps project, or change the YAML to use the exact name of an existing one.
+
+Go to:
+
+```text
+Azure DevOps Project
+   ↓
+Project Settings
+   ↓
+Service connections
+   ↓
+New service connection
+   ↓
+SonarQube
+```
+
+Then enter your SonarQube server URL, for example:
+
+```text
+http://<sonarqube-server-ip>:9000
+```
+
+or:
+
+```text
+https://sonarqube.example.com
+```
+
+Generate a token in SonarQube:
+
+```text
+SonarQube
+   ↓
+My Account
+   ↓
+Security
+   ↓
+Generate Token
+```
+
+Copy the token and paste it into the Azure DevOps service connection configuration.
+
+For the **Service connection name**, use exactly:
+
+```text
+sonarqube-connection
+```
+
+Then click:
+
+```text
+Verify and Save
+```
+
+If Azure DevOps shows an authorization option, enable:
+
+```text
+Grant access permission to all pipelines
+```
+
+For your lab, this is the simplest option.
+
+Your YAML can then remain:
+
+```yaml
+- task: SonarQubePrepare@8
+  inputs:
+    SonarQube: 'sonarqube-connection'
+    scannerMode: 'cli'
+    configMode: 'manual'
+    cliProjectKey: 'python-code-analysis'
+    cliProjectName: 'Python Code Analysis'
+    cliSources: '.'
+```
+
+The important part is this:
+
+```yaml
+SonarQube: 'sonarqube-connection'
+```
+
+That value is **not the SonarQube project name**. It is the Azure DevOps **Service Connection name**.
+
+So your architecture is:
+
+```text
+Azure DevOps Pipeline
+        |
+        | uses
+        v
+sonarqube-connection
+        |
+        | token authentication
+        v
+SonarQube Server
+        |
+        v
+python-code-analysis
+```
+
+If you already created a connection named something like:
+
+```text
+MySonarQube
+```
+
+then don't create another one. Just change your pipeline:
+
+```yaml
+SonarQube: 'MySonarQube'
+```
+
+The names must match exactly.
+
+After fixing it, your pipeline sequence should be:
+
+```text
+SonarQubePrepare@8
+        ↓
+pytest
+        ↓
+SonarQubeAnalyze@8
+        ↓
+SonarQubePublish@8
+```
+
+So the current error is essentially:
+
+```text
+Task found       ✅
+Task version     ✅
+YAML syntax      ✅
+Service connection ❌
+```
+
+Fix/create the service connection and rerun pipeline `20260822.2`.
+
+```
