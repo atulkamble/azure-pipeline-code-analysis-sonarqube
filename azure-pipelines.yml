@@ -1,5 +1,7 @@
 trigger:
-- main
+  branches:
+    include:
+      - main
 
 pr: none
 
@@ -10,6 +12,11 @@ steps:
 
 - checkout: self
   fetchDepth: 0
+
+- script: |
+    echo "Build Branch: $(Build.SourceBranch)"
+    echo "Branch Name: $(Build.SourceBranchName)"
+  displayName: 'Check Branch'
 
 - task: UsePythonVersion@0
   inputs:
@@ -32,6 +39,11 @@ steps:
     scannerMode: 'cli'
     configMode: 'file'
   displayName: 'Prepare SonarQube Analysis'
+
+- script: |
+    echo "Checking Sonar variables..."
+    env | grep -i SONAR || true
+  displayName: 'Check SonarQube Variables'
 
 - task: SonarQubeAnalyze@8
   inputs:
