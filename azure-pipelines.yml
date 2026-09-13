@@ -22,7 +22,7 @@ steps:
 # SonarQube Prepare
 - task: SonarQubePrepare@8
   inputs:
-    SonarQube: 'sonarqube-connection'
+    SonarQube: 'sonar-connection'
     scannerMode: 'cli'
     configMode: 'manual'
     cliProjectKey: 'python-code-analysis'
