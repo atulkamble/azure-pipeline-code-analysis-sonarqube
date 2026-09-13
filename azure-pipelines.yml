@@ -1,7 +1,5 @@
 trigger:
-  branches:
-    include:
-      - main
+- main
 
 pr: none
 
@@ -10,29 +8,29 @@ pool:
 
 steps:
 
+# Checkout
 - checkout: self
   fetchDepth: 0
 
-- script: |
-    echo "Build Branch: $(Build.SourceBranch)"
-    echo "Branch Name: $(Build.SourceBranchName)"
-  displayName: 'Check Branch'
-
+# Setup Python
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '3.12'
   displayName: 'Setup Python'
 
+# Install Dependencies
 - script: |
     python -m pip install --upgrade pip
     pip install -r requirements.txt
     pip install pytest pytest-cov
   displayName: 'Install Dependencies'
 
+# Run Tests + Generate Coverage
 - script: |
     pytest --cov=. --cov-report=xml
   displayName: 'Run Tests and Generate Coverage'
 
+# Prepare SonarQube
 - task: SonarQubePrepare@8
   inputs:
     SonarQube: 'sonar-connection'
@@ -40,16 +38,38 @@ steps:
     configMode: 'file'
   displayName: 'Prepare SonarQube Analysis'
 
-- script: |
-    echo "Checking Sonar variables..."
-    env | grep -i SONAR || true
-  displayName: 'Check SonarQube Variables'
+# IMPORTANT:
+# Remove sonar.branch.name automatically injected by Azure DevOps
+- bash: |
+    python <<'PY'
+    import json
+    import os
 
+    raw = os.environ.get("SONARQUBE_SCANNER_PARAMS", "{}")
+    params = json.loads(raw)
+
+    if "sonar.branch.name" in params:
+        del params["sonar.branch.name"]
+        print("Removed sonar.branch.name")
+    else:
+        print("sonar.branch.name was not present")
+
+    value = json.dumps(params, separators=(',', ':'))
+
+    print(
+        "##vso[task.setvariable variable=SONARQUBE_SCANNER_PARAMS]"
+        + value
+    )
+    PY
+  displayName: 'Remove sonar.branch.name'
+
+# Run SonarQube Analysis
 - task: SonarQubeAnalyze@8
   inputs:
     jdkversion: 'JAVA_HOME_17_X64'
   displayName: 'Run SonarQube Analysis'
 
+# Publish Quality Gate
 - task: SonarQubePublish@8
   inputs:
     pollingTimeoutSec: '300'
