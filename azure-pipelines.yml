@@ -6,17 +6,21 @@ pool:
 
 steps:
 
+# Checkout Source Code
 - checkout: self
   fetchDepth: 0
 
+# Setup Python
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '3.12'
   displayName: 'Setup Python'
 
+# Install Dependencies
 - script: |
     python -m pip install --upgrade pip
     pip install -r requirements.txt
+    pip install pytest pytest-cov
   displayName: 'Install Dependencies'
 
 # SonarQube Prepare
@@ -24,15 +28,13 @@ steps:
   inputs:
     SonarQube: 'sonar-connection'
     scannerMode: 'cli'
-    configMode: 'manual'
-    cliProjectKey: 'python-code-analysis'
-    cliProjectName: 'Python Code Analysis'
-    cliSources: '.'
+    configMode: 'file'
   displayName: 'Prepare SonarQube Analysis'
 
+# Run Tests and Generate Coverage
 - script: |
     pytest --cov=. --cov-report=xml
-  displayName: 'Run Tests'
+  displayName: 'Run Tests and Generate Coverage'
 
 # SonarQube Analysis
 - task: SonarQubeAnalyze@8
@@ -40,7 +42,7 @@ steps:
     jdkversion: 'JAVA_HOME_17_X64'
   displayName: 'Run SonarQube Analysis'
 
-# Quality Gate
+# Publish Quality Gate
 - task: SonarQubePublish@8
   inputs:
     pollingTimeoutSec: '300'
