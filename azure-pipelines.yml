@@ -1,29 +1,31 @@
 trigger:
 - main
 
+pr: none
+
 pool:
   vmImage: 'ubuntu-latest'
 
 steps:
 
-# Checkout Source Code
 - checkout: self
   fetchDepth: 0
 
-# Setup Python
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '3.12'
   displayName: 'Setup Python'
 
-# Install Dependencies
 - script: |
     python -m pip install --upgrade pip
     pip install -r requirements.txt
     pip install pytest pytest-cov
   displayName: 'Install Dependencies'
 
-# SonarQube Prepare
+- script: |
+    pytest --cov=. --cov-report=xml
+  displayName: 'Run Tests and Generate Coverage'
+
 - task: SonarQubePrepare@8
   inputs:
     SonarQube: 'sonar-connection'
@@ -31,18 +33,11 @@ steps:
     configMode: 'file'
   displayName: 'Prepare SonarQube Analysis'
 
-# Run Tests and Generate Coverage
-- script: |
-    pytest --cov=. --cov-report=xml
-  displayName: 'Run Tests and Generate Coverage'
-
-# SonarQube Analysis
 - task: SonarQubeAnalyze@8
   inputs:
     jdkversion: 'JAVA_HOME_17_X64'
   displayName: 'Run SonarQube Analysis'
 
-# Publish Quality Gate
 - task: SonarQubePublish@8
   inputs:
     pollingTimeoutSec: '300'
